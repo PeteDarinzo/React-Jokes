@@ -1,6 +1,7 @@
 import React from "react";
 import axios from "axios";
 import Joke from "./Joke";
+import Spinner from "./Spinner";
 import "./JokeList.css";
 
 
@@ -75,7 +76,7 @@ class JokeList extends React.Component {
         </div>
       );
     } else {
-      return (<h1>no jokes here</h1>);
+      return (<Spinner />);
     }
   }
 }
