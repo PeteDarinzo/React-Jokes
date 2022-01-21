@@ -10,9 +10,10 @@ class JokeList extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { jokes: [] }; 
+    this.state = { jokes: [] };
     this.generateNewJokes = this.generateNewJokes.bind(this);
     this.vote = this.vote.bind(this);
+    this.clearVotes = this.clearVotes.bind(this);
     this.getJokes = this.getJokes.bind(this);
   }
 
@@ -22,9 +23,16 @@ class JokeList extends React.Component {
 
   vote(id, delta) {
     const newJokes = this.state.jokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j));
+    localStorage.setItem("jokes", JSON.stringify(newJokes));
     this.setState({ jokes: newJokes });
   }
-  
+
+  clearVotes() {
+    let newJokes = this.state.jokes.map(j => ({ ...j, votes: 0 }))
+    localStorage.setItem("jokes", JSON.stringify(newJokes));
+    this.setState({ jokes: newJokes });
+  }
+
   async getJokes() {
     let j = [...this.state.jokes];
     let seenJokes = new Set();
@@ -41,6 +49,7 @@ class JokeList extends React.Component {
           console.error("duplicate found!");
         }
       }
+      localStorage.setItem("jokes", JSON.stringify(j));
       this.setState({ jokes: j });
     } catch (e) {
       console.log(e);
@@ -49,26 +58,34 @@ class JokeList extends React.Component {
 
   /** Get jokes on component mount */
   componentDidMount() {
-    this.getJokes();
+    if (localStorage.getItem("jokes") === null) {
+      this.getJokes();
+      localStorage.setItem("jokes", JSON.stringify(this.state.jokes));
+    } else {
+      this.setState({ jokes: JSON.parse(localStorage.getItem("jokes")) })
+    }
   }
 
   /** Get jokes if jokes state changes, or number of jokes prop changes */
   componentDidUpdate(prevProps, prevState) {
     if ((this.state.jokes !== prevState.jokes) || (this.props.numJokesToGet !== prevProps.numJokesToGet)) {
-      if (this.state.jokes.length === 0) this.getJokes();
+      if (this.state.jokes.length === 0) {
+        this.getJokes();
+      }
     }
   }
 
-
   render() {
     if (this.state.jokes.length) {
-
       let sortedJokes = [...this.state.jokes].sort((a, b) => b.votes - a.votes);
 
       return (
         <div className="JokeList">
           <button className="JokeList-getmore" onClick={this.generateNewJokes}>
             Get New Jokes
+          </button>
+          <button className="JokeList-getmore" onClick={this.clearVotes}>
+            Clear Votes
           </button>
           {sortedJokes.map(j => (
             <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={this.vote} /> // render a joke for all jokes
