@@ -17,22 +17,26 @@ class JokeList extends React.Component {
     this.getJokes = this.getJokes.bind(this);
   }
 
+  /** change the jokes state to empty array, triggering getJokes */
   generateNewJokes() {
     this.setState({ jokes: [] });
   }
 
+  /** add or subtract from a joke's votes, then update local storage */
   vote(id, delta) {
     const newJokes = this.state.jokes.map(j => (j.id === id ? { ...j, votes: j.votes + delta } : j));
     localStorage.setItem("jokes", JSON.stringify(newJokes));
     this.setState({ jokes: newJokes });
   }
 
+  /** clear all votes, then update in local storage */
   clearVotes() {
     let newJokes = this.state.jokes.map(j => ({ ...j, votes: 0 }))
     localStorage.setItem("jokes", JSON.stringify(newJokes));
     this.setState({ jokes: newJokes });
   }
 
+  /** retreive jokes from the API, then set in state and local storage */
   async getJokes() {
     let j = [...this.state.jokes];
     let seenJokes = new Set();
@@ -56,7 +60,7 @@ class JokeList extends React.Component {
     }
   }
 
-  /** Get jokes on component mount */
+  /** populate jokes on component mount, from local storage if available, otherwise get jokes from API */
   componentDidMount() {
     if (localStorage.getItem("jokes") === null) {
       this.getJokes();
